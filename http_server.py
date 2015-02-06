@@ -1,14 +1,57 @@
 import socket
 import sys
+import os
+import mimetypes
 
+def resolve_uri(uri):
+    # Setting up web root
+    root = os.path.abspath("webroot")
+    f = root + uri
+    f = os.path.abspath(f)
 
-def response_ok():
+    # Checking if paht is a directory, a file, or wrong path
+    if os.path.isdir(f):
+        content_type = "text/plain"
+        rstring = ""
+        filelist = os.listdir(f)
+        # listing files and directories
+        rstring = "<html><body><table border='1' cellpadding='5'>"
+        for i in filelist:
+            rstring += "<tr>"
+            if i.find(".") > -1:
+                rstring += "<td>" + mimetypes.guess_type(i)[0] + "</td><td>" + i + "</td>"
+            else:
+                rstring += "<td>directory</td><td>" + i + "</td>"
+            rstring += "</tr>"
+        rstring += "</table></body></html>"
+        return (rstring, content_type)
+    elif os.path.isfile(f):
+        content_type = mimetypes.guess_type(f)[0]
+        content = ""
+        # Displaying content
+        with open (f, "rb") as fname:
+            content = fname.read()
+        return (content, content_type)
+    else:
+        # Returning error in text/plain
+        return("error", 'text/plain')
+ 
+def response_not_found():
+    """ returns a 404 Resource not Found """
+    resp = []
+    resp.append("HTTP/1.1 404 Resource Not Found")
+    resp.append("")
+    return "\r\n".join(resp)
+
+def response_ok(content, type):
     """returns a basic HTTP response"""
+    if content == "error":
+        content = "404 Resource Not Found"
     resp = []
     resp.append("HTTP/1.1 200 OK")
-    resp.append("Content-Type: text/plain")
+    resp.append(type)
     resp.append("")
-    resp.append("this is a pretty minimal response")
+    resp.append(content)
     return "\r\n".join(resp)
 
 
@@ -18,7 +61,6 @@ def response_method_not_allowed():
     resp.append("HTTP/1.1 405 Method Not Allowed")
     resp.append("")
     return "\r\n".join(resp)
-
 
 def parse_request(request):
     first_line = request.split("\r\n", 1)[0]
@@ -36,7 +78,7 @@ def server():
     print >>sys.stderr, "making a server on %s:%s" % address
     sock.bind(address)
     sock.listen(1)
-
+    
     try:
         while True:
             print >>sys.stderr, 'waiting for a connection'
@@ -57,15 +99,22 @@ def server():
                 else:
                     # replace this line with the following once you have
                     # written resolve_uri
-                    response = response_ok()
-                    # content, type = resolve_uri(uri) # change this line
+                    # response = response_ok()
+                    # resolve_uri(uri)
+                    content, type = resolve_uri(uri) # change this line
+                    
+                    print content
+                    print 
+                    print 
+                    print 
+                    print type
 
                     ## uncomment this try/except block once you have fixed
                     ## response_ok and added response_not_found
-                    # try:
-                    #     response = response_ok(content, type)
-                    # except NameError:
-                    #     response = response_not_found()
+                    try:
+                        response = response_ok(content, type)
+                    except NameError:
+                        response = response_not_found()
 
                 print >>sys.stderr, 'sending response'
                 conn.sendall(response)
