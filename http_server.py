@@ -34,25 +34,27 @@ def resolve_uri(uri):
         return (content, content_type)
     else:
         # Returning error in text/plain
-        return("error", 'text/plain')
+        return(None, None)
  
 def response_not_found():
     """ returns a 404 Resource not Found """
     resp = []
     resp.append("HTTP/1.1 404 Resource Not Found")
     resp.append("")
+    resp.append("404 Not Found")
     return "\r\n".join(resp)
 
 def response_ok(content, type):
     """returns a basic HTTP response"""
-    if content == "error":
-        content = "404 Resource Not Found"
-    resp = []
-    resp.append("HTTP/1.1 200 OK")
-    resp.append(type)
-    resp.append("")
-    resp.append(content)
-    return "\r\n".join(resp)
+    try: 
+        resp = []
+        resp.append("HTTP/1.1 200 OK")
+        resp.append(type)
+        resp.append("")
+        resp.append(content)
+        return "\r\n".join(resp)
+    except TypeError:
+        raise NameError("404 Not Found")
 
 
 def response_method_not_allowed():
@@ -97,23 +99,11 @@ def server():
                 except NotImplementedError:
                     response = response_method_not_allowed()
                 else:
-                    # replace this line with the following once you have
-                    # written resolve_uri
-                    # response = response_ok()
-                    # resolve_uri(uri)
                     content, type = resolve_uri(uri) # change this line
-                    
-                    print content
-                    print 
-                    print 
-                    print 
-                    print type
-
-                    ## uncomment this try/except block once you have fixed
-                    ## response_ok and added response_not_found
                     try:
                         response = response_ok(content, type)
                     except NameError:
+                        print "inside error"
                         response = response_not_found()
 
                 print >>sys.stderr, 'sending response'

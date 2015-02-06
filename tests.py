@@ -156,7 +156,7 @@ class ParseRequestTestCase(unittest.TestCase):
             request = request_template.format(method)
             self.assertRaises(
                 NotImplementedError, self.call_function_under_test, request
-            )
+            ) 
 
     def test_uri_returned(self):
         """verify that the parse_request function returns a URI"""
